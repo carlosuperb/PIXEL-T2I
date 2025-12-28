@@ -1,13 +1,17 @@
-# Build a clean release zip for pretrained model weights.
-#
-# This script:
-# - Copies only the required .pt files
-# - Preserves the original directory structure under models/
-# - Produces a release-ready zip
-# - Cleans up all temporary files
-#
-# Run from VS Code or terminal:
-#   python scripts/v0_build_release_weights.py --version v0.1.0
+"""
+v0_build_release_weights.py
+
+Build a clean release zip for pretrained model weights.
+
+This script:
+- Copies only the required .pt files
+- Preserves the original directory structure under models/
+- Produces a release-ready zip suitable for GitHub Releases
+- Cleans up all temporary files after packaging
+
+Run from VS Code or terminal:
+  python scripts/v0_build_release_weights.py --version v0.1.0
+"""
 
 from pathlib import Path
 import shutil
