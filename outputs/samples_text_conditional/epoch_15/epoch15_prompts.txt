@@ -1,0 +1,4 @@
+0: male human with red cape, 4-view sprite sheet
+1: female elf with purple skin and blue hair, wearing gold armor, 4-view sprite sheet
+2: male human with dark skin, wearing blue cape, metal gloves and leather boots, 4-view sprite sheet
+3: lpc-style pixel art character, female human with tanned skin, wearing green hood, cloth pants and metal boots, with blonde hair, 4-view sprite sheet
