@@ -1,5 +1,6 @@
 # Python cache
 __pycache__/
+**/__pycache__/
 *.py[cod]
 
 # Virtual environments
@@ -17,3 +18,12 @@ Thumbs.db
 # Editor settings
 .vscode/
 .idea/
+
+# Model weights / checkpoints
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Model temp outputs (keep dirs, ignore contents)
+models/**/temp_outputs/*
