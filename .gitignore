@@ -25,5 +25,6 @@ Thumbs.db
 *.ckpt
 *.safetensors
 
-# Model temp outputs (keep dirs, ignore contents)
+# Runtime outputs (ignore contents, keep directory via .gitkeep)
 models/**/temp_outputs/*
+!models/**/temp_outputs/.gitkeep
