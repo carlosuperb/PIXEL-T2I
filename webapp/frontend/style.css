@@ -1,0 +1,850 @@
+/* ============================================================================
+   webapp/frontend/style.css
+
+   Pixel Odyssey UI stylesheet.
+
+   Scope:
+   - Visual styling and layout for the PIXEL-T2I web demo
+   - Defines view states for character generation and action preview
+
+   Integration:
+   - Layout and DOM hooks are defined in index.html.
+   - View switching relies on the presence of `body.view-actions`, toggled by action_view.js.
+
+   Conventions:
+   - Ordering of rules is intentional and must remain stable.
+   - Comments document structural intent and state-driven behavior.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   Theme tokens
+   --------------------------------------------------------------------------- */
+:root {
+  --color-wood-dark: #6b4c3e;
+  --color-wood-light: #9c7f66;
+  --color-paper-bg: #e6d3a8;
+  --color-paper-line: #a08c6b;
+  --color-text-dark: #3a2e26;
+  --color-input-border: #9c7f66;
+  --color-button-bg: #80604b;
+  --color-button-border: #6b4c3e;
+  --color-sprite-border: #70574a;
+}
+
+/* ---------------------------------------------------------------------------
+   Global base
+   --------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  /* Global background */
+  background-image: url("images/pixel_background.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  background-color: #d1b897;
+
+  /* Global layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  min-height: 100vh;
+  margin: 0;
+  padding-top: 18px;
+  padding-bottom: 24px;
+  gap: 18px;
+
+  font-family: Arial, sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+   Top bar
+   --------------------------------------------------------------------------- */
+.ui-topbar {
+  width: 960px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: rgba(255, 250, 240, 0.35);
+  border: 2px solid rgba(107, 76, 62, 0.35);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+
+  /* Paper grid background */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(160, 140, 107, 0.25),
+      rgba(160, 140, 107, 0.25) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(160, 140, 107, 0.25),
+      rgba(160, 140, 107, 0.25) 1px,
+      transparent 1px,
+      transparent 32px
+    );
+  background-size: 32px 32px;
+}
+
+.ui-topbar .title-bar {
+  text-align: center;
+}
+
+.ui-topbar .title-bar h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--color-text-dark);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* ---------------------------------------------------------------------------
+   Input controls
+   --------------------------------------------------------------------------- */
+.input-section {
+  width: 960px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 320px;
+
+  background-color: #fffaf0;
+  border: 3px solid var(--color-input-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.input-container input,
+.input-container textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  color: var(--color-text-dark);
+  font-family: inherit;
+  line-height: 1.2;
+  padding: 4px 8px;
+  margin: 0;
+}
+
+/* promptInput is auto-resized by mode.js (clamped by max-height) */
+#promptInput {
+  resize: none;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  line-height: 1.2;
+  max-height: 110px;
+  white-space: pre-wrap;
+}
+
+/* Dice button animation is triggered via .is-rolling (mode.js) */
+.dice-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0 6px;
+  line-height: 1;
+}
+
+@keyframes dice-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dice-button.is-rolling {
+  animation: dice-spin 0.6s ease-in-out;
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.generate-button,
+.tools-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Primary buttons
+   --------------------------------------------------------------------------- */
+.generate-button {
+  background-color: var(--color-button-bg);
+  color: #fff;
+
+  font-weight: bold;
+  font-size: 18px;
+  padding: 10px 18px;
+
+  border: 3px solid var(--color-button-border);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--color-button-border);
+
+  letter-spacing: 1px;
+}
+
+/* Disabled state is controlled by frontend logic (e.g., action_view.js) */
+.generate-actions-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ---------------------------------------------------------------------------
+   Tools button
+   --------------------------------------------------------------------------- */
+.tools-button {
+  background-color: rgba(255, 250, 240, 0.75);
+  color: var(--color-text-dark);
+
+  font-weight: bold;
+  font-size: 16px;
+  padding: 10px 14px;
+
+  border: 2px solid rgba(107, 76, 62, 0.55);
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(107, 76, 62, 0.35);
+
+  letter-spacing: 0.6px;
+}
+
+.tools-button:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 rgba(107, 76, 62, 0.35);
+}
+
+.tools-caret {
+  margin-left: 6px;
+}
+
+/* ---------------------------------------------------------------------------
+   Tools panel
+   --------------------------------------------------------------------------- */
+.tools-panel-wrapper {
+  width: 960px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+}
+
+.tools-panel {
+  width: 340px;
+  border: 2px solid rgba(107, 76, 62, 0.55);
+  border-radius: 10px;
+  background: rgba(255, 250, 240, 0.85);
+  box-shadow: 6px 6px 0 rgba(107, 76, 62, 0.25);
+  padding: 12px 14px;
+}
+
+.tools-title {
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--color-text-dark);
+  letter-spacing: 0.6px;
+}
+
+.tools-divider {
+  height: 2px;
+  margin: 10px 0 12px;
+  background: rgba(107, 76, 62, 0.25);
+}
+
+.tools-section {
+  margin-bottom: 14px;
+}
+
+.tools-section-title {
+  font-weight: bold;
+  font-size: 14px;
+  color: rgba(58, 46, 38, 0.85);
+  margin-bottom: 8px;
+  letter-spacing: 0.4px;
+}
+
+.tools-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tools-label {
+  font-size: 13px;
+  color: rgba(58, 46, 38, 0.85);
+  white-space: nowrap;
+}
+
+.tools-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.tools-slider {
+  width: 160px;
+}
+
+.tools-value {
+  min-width: 26px;
+  text-align: right;
+  font-weight: bold;
+  color: rgba(58, 46, 38, 0.9);
+}
+
+.tools-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tools-action-btn {
+  background-color: rgba(128, 96, 75, 0.12);
+  color: rgba(58, 46, 38, 0.9);
+
+  font-weight: bold;
+  font-size: 14px;
+  padding: 10px 10px;
+
+  border: 2px solid rgba(107, 76, 62, 0.35);
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+/* Disabled state is driven by mode.js (e.g., batch mode disables certain actions) */
+.tools-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tools-action-danger {
+  background-color: rgba(214, 59, 59, 0.12);
+  border-color: rgba(214, 59, 59, 0.35);
+}
+
+.tools-advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tools-row-compact {
+  margin-top: 4px;
+}
+
+/* Switch control used by Batch Generation */
+.tools-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  display: inline-block;
+}
+
+.tools-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.tools-switch-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(107, 76, 62, 0.25);
+  border: 2px solid rgba(107, 76, 62, 0.35);
+  border-radius: 999px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.tools-switch-slider::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.95);
+  border: 1px solid rgba(107, 76, 62, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.tools-switch input:checked + .tools-switch-slider {
+  background: rgba(64, 160, 90, 0.25);
+  border-color: rgba(64, 160, 90, 0.45);
+}
+
+.tools-switch input:checked + .tools-switch-slider::after {
+  transform: translate(20px, -50%);
+}
+
+/* ---------------------------------------------------------------------------
+   Mode indicator
+   --------------------------------------------------------------------------- */
+.mode-indicator-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+.mode-indicator {
+  font-size: 16px;
+  color: rgba(58, 46, 38, 0.9);
+  letter-spacing: 0.6px;
+  font-weight: bold;
+
+  background: rgba(255, 250, 240, 0.65);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------------------
+   Monitor frame
+   --------------------------------------------------------------------------- */
+.monitor-frame {
+  width: 960px;
+  height: 720px;
+
+  background-color: var(--color-wood-light);
+  border: 15px solid var(--color-wood-dark);
+  border-radius: 10px;
+  padding: 10px;
+
+  position: relative;
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+}
+
+.monitor-stand {
+  width: 200px;
+  height: 30px;
+
+  background-color: var(--color-wood-dark);
+  border-radius: 0 0 5px 5px;
+
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.screen-border {
+  background-color: var(--color-wood-dark);
+  padding: 5px;
+  height: 100%;
+  border-radius: 5px;
+  display: flex;
+}
+
+.generator-screen {
+  position: relative;
+
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  padding: 20px;
+  background-color: rgba(245, 242, 232, 0.92);
+
+  /* Paper grid background */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(70, 60, 50, 0.10),
+      rgba(70, 60, 50, 0.10) 1px,
+      transparent 1px,
+      transparent 44px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(70, 60, 50, 0.10),
+      rgba(70, 60, 50, 0.10) 1px,
+      transparent 1px,
+      transparent 44px
+    );
+  background-size: 44px 44px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen-badge {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+
+  color: rgba(58, 46, 38, 0.85);
+  background: rgba(240, 241, 255, 0.75);
+  border: 1px solid rgba(107, 76, 62, 0.35);
+
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Output stage
+   --------------------------------------------------------------------------- */
+.output-grid {
+  width: min(70%, 560px);
+  aspect-ratio: 1 / 1;
+  padding: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background-color: transparent;
+
+  position: relative;
+  overflow: hidden;
+}
+
+.sprite-panel {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  border: 2px dashed var(--color-sprite-border);
+  background-color: rgba(255, 255, 255, 0.22);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+.sprite-panel img {
+  width: 100%;
+  height: 100%;
+  display: block;
+
+  background: transparent;
+  border: none;
+
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* Action preview image container (12x9 tile sheet) */
+.sprite-panel-action {
+  position: relative;
+
+  width: 92%;
+  height: 96%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  border: 2px dashed rgba(0, 0, 0, 0.9);
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.sprite-panel-action .actions-img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* Overlay used during generation (character view) */
+.sprite-panel .generating-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0.8px;
+  color: rgba(58, 46, 38, 0.85);
+
+  background: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.placeholder-image {
+  opacity: 0.3;
+}
+
+/* Overlay base style (reused across views) */
+.generating-overlay {
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0.8px;
+  color: rgba(58, 46, 38, 0.85);
+  background: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+/* Action Preview overlay (action view) */
+.generating-overlay-action {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Batch preview
+   --------------------------------------------------------------------------- */
+.batch-preview-grid {
+  width: 100%;
+  height: 100%;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
+}
+
+.batch-preview-grid img {
+  width: 100%;
+  height: 100%;
+  display: block;
+
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   View slider
+   --------------------------------------------------------------------------- */
+.view-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.view-slider {
+  display: flex;
+  flex-wrap: nowrap;
+
+  width: 200%;
+  height: 100%;
+
+  transform: translateX(0%);
+  transition: transform 360ms ease-in-out;
+}
+
+.view-panel {
+  flex: 0 0 50%;
+  width: 50%;
+  height: 100%;
+
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+/*
+  View switching is controlled by body.view-actions (action_view.js).
+  - Slides to the action panel by shifting the view slider.
+  - Hides input and tools to reduce clutter in action view.
+*/
+body.view-actions .view-slider {
+  transform: translateX(-50%);
+}
+
+body.view-actions .input-section,
+body.view-actions .tools-panel-wrapper {
+  display: none;
+}
+
+body.view-actions .mode-indicator-wrapper {
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+
+body.view-actions .generator-screen {
+  padding: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+   Action view stage overrides
+   --------------------------------------------------------------------------- */
+body.view-actions .output-grid {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  padding: 0;
+}
+
+body.view-actions .view-panel-actions {
+  height: 100%;
+}
+
+body.view-actions .view-panel-actions .actions-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------------------
+   Action UI outside the monitor
+   --------------------------------------------------------------------------- */
+.action-ui {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.action-controls {
+  width: 960px;
+  display: none;
+  justify-content: center;
+  margin-top: 6px;
+  margin-bottom: -4px;
+}
+
+.action-tabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.action-tab {
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.62);
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.action-tab.is-active {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.action-footer {
+  width: 960px;
+  display: none;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.action-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.action-btn-primary {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.action-btn-secondary {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+/* Action-only controls are visible only in action view */
+body.view-actions .action-controls {
+  display: flex;
+}
+
+body.view-actions .action-footer {
+  display: flex;
+}
+
+/* ---------------------------------------------------------------------------
+   Action mode sizing
+   --------------------------------------------------------------------------- */
+body.view-actions .monitor-frame {
+  height: 860px;
+}
+
+/* ---------------------------------------------------------------------------
+   Footer
+   --------------------------------------------------------------------------- */
+.global-footer {
+  position: static;
+  width: 100%;
+  margin: 18px 0 14px;
+
+  text-align: center;
+  font-size: 18px;
+  color: #d63b3b;
+
+  pointer-events: none;
+}
+
+.anchor-icon {
+  margin-left: 8px;
+}
