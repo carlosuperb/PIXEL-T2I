@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<!--
+  webapp/frontend/index.html
+
+  Main UI layout for the PIXEL-T2I web demo.
+
+  Responsibilities:
+  - Define the structural layout for character generation and action preview
+  - Provide stable DOM anchors (id / class / data-* attributes) consumed by:
+      - mode.js (generation flow, tools panel, batch preview, downloads)
+      - prompt_generator.js (dice prompt generation)
+      - action_view.js (action view switching + actions preview)
+
+  Integration notes:
+  - Element ids referenced by JavaScript are treated as public API and must remain stable.
+  - The backend serves generated images under /static/; the frontend references them via API responses.
+  - Text-conditioned mode is single-sample; batch controls are disabled by mode.js.
+
+  File order:
+  - prompt_generator.js must load before mode.js (mode.js expects window.getRandomPrompt).
+  - action_view.js integrates with mode.js via window.__po_action_view and window.__po_refresh_mode.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Odyssey - RPG Character Generator</title>
+  <link rel="stylesheet" href="style.css?v=1" />
+</head>
+
+<body>
+  <!-- ===================== -->
+  <!-- Top Bar / Title Header -->
+  <!-- ===================== -->
+  <div class="ui-topbar">
+    <header class="title-bar">
+      <h1>PIXEL ODYSSEY - RPG CHARACTER GENERATOR</h1>
+    </header>
+  </div>
+
+  <!-- ===================== -->
+  <!-- Prompt Input + Actions -->
+  <!-- ===================== -->
+  <section class="input-section">
+    <div class="input-container">
+      <!--
+        promptInput
+        - Text prompt input (empty => unconditional generation; non-empty => text-conditioned)
+        - mode.js listens to input events for mode switching and auto-resize behavior
+      -->
+      <textarea id="promptInput" rows="1" placeholder="Enter character description (optional)"></textarea>
+
+      <!--
+        Dice button
+        - Uses prompt_generator.js (window.getRandomPrompt) to populate promptInput
+        - Animation and focus behavior handled by mode.js
+      -->
+      <button class="dice-button" aria-label="Unconditional generation (Roll the dice)">🎲</button>
+    </div>
+
+    <div class="action-row">
+      <!--
+        generateBtn
+        - Triggers POST /api/generate (unconditional or text-conditioned)
+        - Response rendering and UI state handled by mode.js
+      -->
+      <button id="generateBtn" class="generate-button">GENERATE SPRITES</button>
+
+      <!--
+        generateActionsBtn
+        - Entry point to the action generation view
+        - Enabled only after a single generated 4-view exists (not batch preview)
+        - Controlled by action_view.js based on previewImage / window.__po_last_generated_abs_url
+      -->
+      <button
+        id="generateActionsBtn"
+        class="generate-button generate-actions-button"
+        type="button"
+        disabled
+        title="Generate a character first"
+      >
+        GENERATE ACTIONS
+      </button>
+
+      <!--
+        toolsBtn / toolsPanel
+        - Tools dropdown for generation parameters and downloads
+        - Open/close behavior and enable/disable logic handled by mode.js
+      -->
+      <button
+        id="toolsBtn"
+        class="tools-button"
+        type="button"
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-controls="toolsPanel"
+      >
+        Tools <span class="tools-caret">▾</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== -->
+  <!-- Tools Panel -->
+  <!-- ===================== -->
+  <div class="tools-panel-wrapper">
+    <div id="toolsPanel" class="tools-panel" hidden>
+      <div class="tools-title">Tools</div>
+      <div class="tools-divider"></div>
+
+      <div class="tools-section">
+        <div class="tools-section-title">Generation</div>
+
+        <div class="tools-row">
+          <label
+            class="tools-label"
+            for="ddimSteps"
+            title="Lower values (e.g. 5) prioritise generation speed. Higher values (e.g. 100) prioritise visual quality."
+          >
+            DDIM Steps
+          </label>
+
+          <div class="tools-control">
+            <!-- ddimSteps / ddimStepsValue are bound by mode.js -->
+            <input id="ddimSteps" class="tools-slider" type="range" min="5" max="100" step="1" value="10" />
+            <span id="ddimStepsValue" class="tools-value">10</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tools-section">
+        <div class="tools-section-title">Output</div>
+
+        <div class="tools-actions">
+          <!-- savePngBtn requires a single output image (disabled in batch mode) -->
+          <button id="savePngBtn" class="tools-action-btn" type="button" disabled title="Generate an image first">
+            Save as PNG
+          </button>
+
+          <!-- split4viewBtn exports the 2x2 4-view into directional PNGs (ZIP) -->
+          <button id="split4viewBtn" class="tools-action-btn" type="button" disabled title="Generate an image first">
+            Split 4-View Grid (ZIP)
+          </button>
+
+          <!-- downloadBatchBtn downloads batch results as a ZIP via /api/download_batch -->
+          <button id="downloadBatchBtn" class="tools-action-btn" type="button" disabled title="Generate a batch first">
+            Download Batch (ZIP)
+          </button>
+
+          <!-- clearCacheBtn calls POST /api/clear_cache and resets frontend state -->
+          <button id="clearCacheBtn" class="tools-action-btn tools-action-danger" type="button" title="Clear cached generated images">
+            Clear Cache
+          </button>
+        </div>
+      </div>
+
+      <div class="tools-section">
+        <div class="tools-section-title">Advanced</div>
+
+        <div class="tools-advanced">
+          <div class="tools-row">
+            <!--
+              batchToggle
+              - Enables unconditional batch generation only
+              - Text-conditioned mode forces single-sample; mode.js disables this control
+            -->
+            <span class="tools-label">Batch Generation</span>
+
+            <label class="tools-switch" title="Enable batch generation">
+              <input id="batchToggle" type="checkbox" />
+              <span class="tools-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="tools-row tools-row-compact">
+            <label class="tools-label" for="batchQty">Quantity</label>
+            <div class="tools-control">
+              <!-- batchQty / batchQtyValue are bound by mode.js -->
+              <input id="batchQty" class="tools-slider" type="range" min="1" max="50" step="1" value="20" disabled />
+              <span id="batchQtyValue" class="tools-value">20</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- Mode Indicator -->
+  <!-- ===================== -->
+  <div class="mode-indicator-wrapper">
+    <!-- modeIndicator is set by mode.js and overridden in action view -->
+    <div id="modeIndicator" class="mode-indicator">
+      Mode: Random (Unconditional Generation)
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- Action Controls (Tabs) -->
+  <!-- ===================== -->
+  <div id="actionControls" class="action-ui action-controls" hidden>
+    <div class="action-tabs" role="tablist" aria-label="Action type">
+      <!--
+        action-tab buttons
+        - data-action keys: walk / thrust / slash
+        - action_view.js switches overlay animation without additional backend calls
+      -->
+      <button class="action-tab is-active" type="button" data-action="walk" role="tab" aria-selected="true">Walk</button>
+      <button class="action-tab" type="button" data-action="thrust" role="tab" aria-selected="false">Thrust</button>
+      <button class="action-tab" type="button" data-action="slash" role="tab" aria-selected="false">Slash</button>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- Output Display Frame -->
+  <!-- ===================== -->
+  <div class="monitor-frame">
+    <div class="screen-border">
+      <div class="generator-screen">
+        <!-- exampleBadge is hidden after the first successful generation -->
+        <div id="exampleBadge" class="screen-badge" aria-hidden="true">Example output</div>
+
+        <!-- batchBadge is shown when a batch preview is displayed -->
+        <div id="batchBadge" class="screen-badge" aria-hidden="true" hidden>Batch Preview: 1/20</div>
+
+        <main class="output-grid">
+          <div class="view-viewport">
+            <!--
+              viewSlider
+              - Container for view panels
+              - view switching is managed via CSS class toggles (view-actions) and scripts
+            -->
+            <div id="viewSlider" class="view-slider">
+              <!-- ===================== -->
+              <!-- View 1: Character Preview -->
+              <!-- ===================== -->
+              <section class="view-panel view-panel-character" aria-label="Character Preview">
+                <div class="sprite-panel" id="spritePanel">
+                  <!--
+                    previewImage
+                    - Single preview image target
+                    - Updated by mode.js after /api/generate
+                    - Observed by action_view.js to determine action availability
+                  -->
+                  <img id="previewImage" class="placeholder-image" src="images/4view_example.png" alt="Example 4-view sprite output" />
+
+                  <!--
+                    batchPreviewGrid
+                    - Shows up to 4 images for batch preview
+                    - mode.js toggles between previewImage and this grid
+                  -->
+                  <div id="batchPreviewGrid" class="batch-preview-grid" hidden aria-hidden="true">
+                    <img id="batchImg1" alt="Batch preview 1" />
+                    <img id="batchImg2" alt="Batch preview 2" />
+                    <img id="batchImg3" alt="Batch preview 3" />
+                    <img id="batchImg4" alt="Batch preview 4" />
+                  </div>
+
+                  <!-- generatingOverlay is shown during /api/generate requests -->
+                  <div id="generatingOverlay" class="generating-overlay" aria-live="polite" hidden>
+                    Generating...
+                  </div>
+                </div>
+              </section>
+
+              <!-- ===================== -->
+              <!-- View 2: Action Preview -->
+              <!-- ===================== -->
+              <section class="view-panel view-panel-actions" aria-label="Action Generation">
+                <div class="actions-preview">
+                  <div class="sprite-panel sprite-panel-action action-panel">
+                    <!--
+                      actionPreviewImg
+                      - Displays the full actions spritesheet returned by /api/generate_actions
+                      - action_view.js overlays a canvas animation preview on top of this image
+                    -->
+                    <img
+                      id="actionPreviewImg"
+                      class="actions-img"
+                      src="images/actions_placeholder.png"
+                      alt="Actions spritesheet preview (placeholder)"
+                    />
+
+                    <!-- actionGeneratingOverlay is shown during /api/generate_actions requests -->
+                    <div
+                      id="actionGeneratingOverlay"
+                      class="generating-overlay generating-overlay-action"
+                      aria-live="polite"
+                      hidden
+                    >
+                      Generating...
+                    </div>
+
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </div>
+
+    <div class="monitor-stand"></div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- Action Footer -->
+  <!-- ===================== -->
+  <div id="actionFooter" class="action-ui action-footer" hidden>
+    <!-- actionDownloadBtn downloads the current actions sheet PNG -->
+    <button id="actionDownloadBtn" class="action-btn action-btn-primary" type="button" disabled title="Coming soon">
+      Download PNG
+    </button>
+
+    <!-- backToCharacterBtn exits action view -->
+    <button id="backToCharacterBtn" class="action-btn action-btn-secondary" type="button">
+      ← Back to Character
+    </button>
+  </div>
+
+  <!-- ===================== -->
+  <!-- Global Footer -->
+  <!-- ===================== -->
+  <footer class="global-footer">
+    <span>Game Demo (Coming Soon)</span>
+    <span class="anchor-icon">⚓</span>
+  </footer>
+
+  <!--
+    Script order is significant:
+    - prompt_generator.js defines window.getRandomPrompt used by mode.js
+    - mode.js defines window.__po_refresh_mode used by action_view.js
+    - action_view.js reads window.__po_last_generated_abs_url set by mode.js
+  -->
+  <script src="prompt_generator.js?v=1"></script>
+  <script src="mode.js?v=1"></script>
+  <script src="action_view.js?v=1"></script>
+</body>
+</html>
