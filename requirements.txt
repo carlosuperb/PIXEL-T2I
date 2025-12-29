@@ -1,0 +1,18 @@
+# Core
+numpy
+pillow
+tqdm
+matplotlib
+
+# Deep learning
+torch
+torchvision
+
+# Text / conditioning (used by text-conditional models)
+transformers>=4.40
+huggingface-hub>=0.34.0,<1.0
+
+# Web backend
+fastapi
+uvicorn
+pydantic
