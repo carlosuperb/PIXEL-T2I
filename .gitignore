@@ -28,3 +28,9 @@ Thumbs.db
 # Runtime outputs (ignore contents, keep directory via .gitkeep)
 models/**/temp_outputs/*
 !models/**/temp_outputs/.gitkeep
+
+# Pixel character dataset (excluded from Git)
+pixel_character_dataset/processed/dataset_4view/
+pixel_character_dataset/processed/dataset_actions/
+pixel_character_dataset/processed/*.zip
+pixel_character_dataset/raw_assets/Universal-LPC-spritesheet/
