@@ -143,8 +143,8 @@ PIXEL-T2I/
   backend for model inference and demonstration.
 
 - **`reports/`**  
-  Project reports, evaluation results, and figures used for analysis
-  and coursework documentation.
+  Project reports, evaluation results, and figures used for
+  experimental analysis and reporting.
 
 - **`assets/`**  
   Static visual assets used for README and project documentation.
