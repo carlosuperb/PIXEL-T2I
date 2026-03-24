@@ -456,14 +456,17 @@ def ddim_sample_step(unet, x, t, t_prev, noise_schedule, context=None, eta=0.0):
     """Single DDIM sampling step"""
     device = x.device
     alphas_cumprod = noise_schedule['alphas_cumprod']
+
+    t_scalar = t[0].item() if isinstance(t, torch.Tensor) else t
+    t_prev_scalar = t_prev.item() if isinstance(t_prev, torch.Tensor) else t_prev
     
-    if t >= 0:
-        alpha_t = alphas_cumprod[t]
+    if t_scalar >= 0:
+        alpha_t = alphas_cumprod[t_scalar]
     else:
         alpha_t = torch.tensor(1.0, device=device)
-    
-    if t_prev >= 0:
-        alpha_t_prev = alphas_cumprod[t_prev]
+
+    if t_prev_scalar >= 0:
+        alpha_t_prev = alphas_cumprod[t_prev_scalar]
     else:
         alpha_t_prev = torch.tensor(1.0, device=device)
     
@@ -525,14 +528,17 @@ def ddim_sample(unet, shape, noise_schedule, device,
             noise_pred = noise_pred_uncond + cfg_scale * (noise_pred_cond - noise_pred_uncond)
             
             alphas_cumprod = noise_schedule['alphas_cumprod']
+
+            t_scalar = t.item()
+            t_prev_scalar = t_prev.item()
             
-            if t >= 0:
-                alpha_t = alphas_cumprod[t]
+            if t_scalar >= 0:
+                alpha_t = alphas_cumprod[t_scalar]
             else:
                 alpha_t = torch.tensor(1.0, device=device)
             
-            if t_prev >= 0:
-                alpha_t_prev = alphas_cumprod[t_prev]
+            if t_prev_scalar >= 0:
+                alpha_t_prev = alphas_cumprod[t_prev_scalar]
             else:
                 alpha_t_prev = torch.tensor(1.0, device=device)
             
