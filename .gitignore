@@ -37,3 +37,19 @@ pixel_character_dataset/raw_assets/Universal-LPC-spritesheet/
 
 # Web app generated outputs
 webapp/web_cache/generated/*
+
+# Evaluation generated data
+reports/evaluation/real_4view/
+reports/evaluation/real_4view_rgb/
+reports/evaluation/real_action/
+reports/evaluation/real_action_rgb/
+
+reports/evaluation/unconditional/fake_uncond/
+reports/evaluation/unconditional/fake_uncond_rgb/
+
+reports/evaluation/text_conditional/fake_text/
+reports/evaluation/text_conditional/fake_text_rgb/
+reports/evaluation/text_conditional/prompts_*.txt
+
+reports/evaluation/image_conditional/fake_action/
+reports/evaluation/image_conditional/fake_action_rgb/
